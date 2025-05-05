@@ -8,6 +8,7 @@ use App\Http\Resources\TicketResource;
 use App\Mail\TicketCreatedNotification;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
@@ -91,7 +92,12 @@ class TicketsController extends Controller
 
         $ticket = Ticket::create($data);
 
-        Mail::to($ticket->email)->send(new TicketCreatedNotification($ticket));
+        try {
+            Mail::to($ticket->email)->send(new TicketCreatedNotification($ticket));
+        } catch (\Throwable $e) {
+            // Log the error
+            Log::error('Failed to send ticket creation email: ' . $e->getMessage());
+        }
 
         return response()->json([
             'message' => 'Ticket submitted successfully.',
